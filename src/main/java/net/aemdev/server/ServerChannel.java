@@ -26,7 +26,7 @@ public class ServerChannel implements Runnable {
     }
 
     private ExecutorService workerThreads = Executors.newCachedThreadPool(ThreadFactoryBuilder.newBuilder().name("AEMDev WorkerThread #%d").build());
-    private ExecutorService eventThreads = Executors.newFixedThreadPool(4, ThreadFactoryBuilder.newBuilder().name("AEMDev WorkerThread #%d").build());
+    private ExecutorService eventThreads = Executors.newFixedThreadPool(4, ThreadFactoryBuilder.newBuilder().name("AEMDev EventThread #%d").build());
 
     private ConcurrentHashMap<Socket, SocketWrapper> mapping = new ConcurrentHashMap<Socket, SocketWrapper>();
 
@@ -40,13 +40,24 @@ public class ServerChannel implements Runnable {
     private ServerSocket serverSocket;
 
     public void start(){
+        if(running)
+            throw new IllegalStateException("Server already running!");
         workerThreads.execute(this);
     }
 
     public void stop(){
+        if(!running)
+            throw new IllegalStateException("Server is already stopped/has never been started!");
         running = false;
         for(SocketWrapper wrapper : mapping.values()){
             wrapper.close();
+        }
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            //It will be ok.
+        } catch (Exception e){
+            e.printStackTrace(); //This won't be ok. ;_;
         }
     }
 
@@ -74,6 +85,8 @@ public class ServerChannel implements Runnable {
                 workerThreads.execute(wrapper);
                 mapping.put(incoming, wrapper);
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

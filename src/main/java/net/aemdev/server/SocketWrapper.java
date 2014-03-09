@@ -56,18 +56,20 @@ public class SocketWrapper implements Runnable {
 
     @Override
     public void run() {
-        running = true;
         eventFiring.fireActive();
         try {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            running = true;
         } catch (IOException e) {
             eventFiring.fireInactive(e);
             close();
             return;
         } catch (Exception e){
             eventFiring.fireException(e);
+            eventFiring.fireInactive(e);
             close();
+            return;
         }
         while (ServerChannel.isRunning() && running){
             try {
