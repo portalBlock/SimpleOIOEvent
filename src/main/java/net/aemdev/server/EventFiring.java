@@ -7,14 +7,15 @@ import java.util.concurrent.ExecutorService;
  */
 public class EventFiring {
     private ExecutorService internalService;
-    private SocketHandler handler;
+    private SocketHandler handler = null;
 
-    public EventFiring(ExecutorService internalService, SocketHandler handler) {
+    public EventFiring(ExecutorService internalService) {
         this.internalService = internalService;
-        this.handler = handler;
     }
 
     protected void fireChannelRead(final Object object){
+        if(handler == null)
+            return;
         internalService.execute(new Runnable() {
             @Override
             public void run() {
@@ -24,6 +25,8 @@ public class EventFiring {
     }
 
     protected void fireException(final Throwable throwable){
+        if(handler == null)
+            return;
         internalService.execute(new Runnable() {
             @Override
             public void run() {
@@ -33,6 +36,8 @@ public class EventFiring {
     }
 
     protected void fireActive(){
+        if(handler == null)
+            return;
         internalService.execute(new Runnable() {
             @Override
             public void run() {
@@ -42,6 +47,8 @@ public class EventFiring {
     }
 
     protected void fireInactive(final Throwable cause){
+        if(handler == null)
+            return;
         internalService.execute(new Runnable() {
             @Override
             public void run() {
@@ -49,4 +56,9 @@ public class EventFiring {
             }
         });
     }
+
+    public void setHandler(SocketHandler handler) {
+        this.handler = handler;
+    }
+
 }

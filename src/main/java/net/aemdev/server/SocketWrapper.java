@@ -84,4 +84,8 @@ public class SocketWrapper implements Runnable {
             }
         }
     }
+
+    public EventFiring getEventFiring() {
+        return eventFiring;
+    }
 }

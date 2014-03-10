@@ -26,7 +26,7 @@ public class ServerChannel implements Runnable {
     }
 
     private ExecutorService workerThreads = Executors.newCachedThreadPool(ThreadFactoryBuilder.newBuilder().name("AEMDev WorkerThread #%d").build());
-    private ExecutorService eventThreads = Executors.newFixedThreadPool(4, ThreadFactoryBuilder.newBuilder().name("AEMDev EventThread #%d").build());
+    private ExecutorService eventThreads = Executors.newFixedThreadPool(1, ThreadFactoryBuilder.newBuilder().name("AEMDev EventThread #%d").build());
 
     private ConcurrentHashMap<Socket, SocketWrapper> mapping = new ConcurrentHashMap<Socket, SocketWrapper>();
 
@@ -81,7 +81,8 @@ public class ServerChannel implements Runnable {
             try {
                 Socket incoming = serverSocket.accept();
                 incoming.setSoTimeout(timeout);
-                SocketWrapper wrapper = new SocketWrapper(this, incoming, new EventFiring(eventThreads, provider.getNewSocketHandler()));
+                SocketWrapper wrapper = new SocketWrapper(this, incoming, new EventFiring(eventThreads));
+                wrapper.getEventFiring().setHandler(provider.getNewSocketHandler(wrapper));
                 workerThreads.execute(wrapper);
                 mapping.put(incoming, wrapper);
             } catch (IOException e) {
